@@ -1,0 +1,152 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"INSTALL",
+			"install"
+		],
+		"files" : 
+		[
+			"3rdparty/rapidjson/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 198,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 203,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 212,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 216,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 256,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 261,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 268,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "pkgconfig",
+			"destination" : "/usr/local/lib/pkgconfig",
+			"paths" : 
+			[
+				"cmake-build-debug/3rdparty/rapidjson/RapidJSON.pc"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "doc",
+			"destination" : "/usr/local/share/doc/RapidJSON",
+			"paths" : 
+			[
+				"3rdparty/rapidjson/readme.md"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "dev",
+			"destination" : "/usr/local/include",
+			"paths" : 
+			[
+				"3rdparty/rapidjson/include/rapidjson"
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 4,
+			"component" : "examples",
+			"destination" : "/usr/local/share/doc/RapidJSON/examples",
+			"paths" : 
+			[
+				{
+					"from" : "3rdparty/rapidjson/example",
+					"to" : "."
+				}
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 5,
+			"component" : "Unspecified",
+			"destination" : "/usr/local/lib/cmake/RapidJSON",
+			"paths" : 
+			[
+				"cmake-build-debug/3rdparty/rapidjson/CMakeFiles/RapidJSONConfig.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 6,
+			"component" : "dev",
+			"destination" : "/usr/local/lib/cmake/RapidJSON",
+			"paths" : 
+			[
+				"cmake-build-debug/3rdparty/rapidjson/RapidJSONConfig.cmake",
+				"cmake-build-debug/3rdparty/rapidjson/RapidJSONConfigVersion.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 7,
+			"component" : "Unspecified",
+			"destination" : "/usr/local/lib/cmake/RapidJSON",
+			"exportName" : "RapidJSON-targets",
+			"exportTargets" : 
+			[
+				{
+					"id" : "RapidJSON::@1881dfd8334cbc6cbb8f",
+					"index" : 0
+				}
+			],
+			"paths" : 
+			[
+				"3rdparty/rapidjson/CMakeFiles/Export/56da7533fbddf9b14f44d99e14fd36d6/RapidJSON-targets.cmake"
+			],
+			"type" : "export"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "3rdparty/rapidjson",
+		"source" : "3rdparty/rapidjson"
+	}
+}

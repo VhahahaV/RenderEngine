@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.21)
+PROJECT(RenderEngine)
+SET(CMAKE_CXX_STANDARD 17)
+
+
+# load third party library
+ADD_SUBDIRECTORY(${PROJECT_SOURCE_DIR}/3rdparty)
+
+find_package(GLEW)
+
+ADD_EXECUTABLE(${PROJECT_NAME} main.cpp)
+TARGET_LINK_LIBRARIES(RapidJSON)
+TARGET_INCLUDE_DIRECTORIES()

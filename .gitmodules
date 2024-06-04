@@ -1,0 +1,9 @@
+[submodule "3rdparty/argparse"]
+	path = 3rdparty/argparse
+	url = https://github.com/p-ranav/argparse.git
+[submodule "3rdparty/imgui"]
+	path = 3rdparty/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "3rdparty/rapidjson"]
+	path = 3rdparty/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
