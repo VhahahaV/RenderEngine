@@ -2,14 +2,20 @@ cmake_minimum_required(VERSION 3.21)
 PROJECT(RenderEngine)
 SET(CMAKE_CXX_STANDARD 17)
 
-
 # load third party library
 ADD_SUBDIRECTORY(${PROJECT_SOURCE_DIR}/3rdparty)
-
-find_package(GLEW)
-
+ADD_SUBDIRECTORY(${PROJECT_SOURCE_DIR}/src)
+find_package(GLEW REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(RapidJSON REQUIRED)
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
+
+
+message(STATUS "CMAKE_MODULE_PATH = ${CMAKE_MODULE_PATH}")
+message(STATUS "CMAKE_ROOT = ${CMAKE_ROOT}")
+message(STATUS "OpenCV_DIR = ${OpenCV_DIR}")
+message(STATUS "OpenCV_INCLUDE_DIRS = ${OpenCV_INCLUDE_DIRS}")
+message(STATUS "OpenCV_LIBS = ${OpenCV_LIBS}")
 
 
 ADD_EXECUTABLE(${PROJECT_NAME} main.cpp)

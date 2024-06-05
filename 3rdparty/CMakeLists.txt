@@ -1,6 +1,5 @@
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/argparse)
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/glad)
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/rapidjson)
 add_library(imgui
         ${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_glfw.cpp
