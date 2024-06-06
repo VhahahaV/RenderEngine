@@ -1,0 +1,35 @@
+{
+  "resolution": [1920, 1080],
+  "camera": {
+    "type": "perspective",
+    "fx": 1,
+    "fy": 1,
+    "cx": 1,
+    "cy": 1
+  },
+  "camera_control": "free",
+  "objects": [
+    {
+      "name": "obj0",
+      "type": ".obj",
+      "file": "./1.obj",
+      "scale": [1, 1, 1],
+      "position": [0, 1, 0],
+      "rotation": {
+        "type": "euler_xyz",
+        "data": [1, 2, 3]
+      }
+    },
+    {
+      "name": "obj1",
+      "type": ".ply",
+      "file": "./2.ply",
+      "scale": [1, 1, 1],
+      "position": [0, 1, 0],
+      "rotation": {
+        "type": "quaternion",
+        "data": [0, 0, 0, 1]
+      }
+    }
+  ]
+}

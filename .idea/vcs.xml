@@ -4,5 +4,7 @@
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdparty/argparse" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdparty/imgui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/3rdparty/tinyobjloader" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/3rdparty/tinyply" vcs="Git" />
   </component>
 </project>

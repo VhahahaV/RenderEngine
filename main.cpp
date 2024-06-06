@@ -2,25 +2,11 @@
 // Created by czq on 24-6-4.
 //
 #include <argparse/argparse.hpp>
-
+#include "Mesh.h"
 int main(int argc, char *argv[]) {
-    argparse::ArgumentParser program("RenderEngine");
 
-    program.add_argument("square")
-      .help("display the square of a given integer")
-      .scan<'i', int>();
-
-    try {
-        program.parse_args(argc, argv);
-    }
-    catch (const std::exception& err) {
-        std::cerr << err.what() << std::endl;
-        std::cerr << program;
-        return 1;
-    }
-
-    auto input = program.get<int>("square");
-    std::cout << (input * input) << std::endl;
-
+    // std::cout << (input * input) << std::endl;
+    ::loadByObj("resource/Wooden chair.obj","",false);
+    ::loadByPly("resource/Wooden chair.ply",false,false);
     return 0;
 }
