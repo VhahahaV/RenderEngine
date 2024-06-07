@@ -1,5 +1,5 @@
 
-SET(CAMERA_SCR CameraBase.h PerspectiveCamera.cpp PerspectiveCamera.h)
+SET(CAMERA_SCR CameraBase.h PerspectiveCamera.cpp PerspectiveCamera.h OrthographicCamera.cpp OrthographicCamera.h)
 find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
 add_library(Camera ${CAMERA_SCR})

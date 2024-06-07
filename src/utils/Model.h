@@ -11,13 +11,18 @@
 #include <vector>
 #include <iostream>
 
-struct  Mesh
+enum class MODEL_TYPE
+{
+    Obj,
+    Ply
+};
+
+struct  Model
 {
     std::vector<float> mVertice;
     std::vector<float> mNormal;
     std::vector<float> mTexCoords;
     std::vector<uint32_t> mFaceIndex;
-
     void debug()
     {
         std::cout << "---------------------------MESH DEBUG-----------------------------------\n";
@@ -32,8 +37,8 @@ struct  Mesh
 
 
 
-std::unique_ptr<Mesh> loadByObj(const char *filename, const char* basepath,bool triangulate);
-std::unique_ptr<Mesh> loadByPly(const char *filename,bool requireNormal, bool requireTexcoord);
+std::unique_ptr<Model> loadByObj(const char *filename, const char* basepath,bool triangulate);
+std::unique_ptr<Model> loadByPly(const char *filename,bool requireNormal, bool requireTexcoord);
 
 
 #endif //MESH_H

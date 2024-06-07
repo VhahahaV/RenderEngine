@@ -4,6 +4,6 @@ SET(DATASET_SRC DatasetBase.h DataSet.cpp DataSet.h)
 find_package(OpenCV REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
-add_executable(DataSet ${DATASET_SRC})
-target_link_libraries(DataSet  ${OpenCV_LIBS})
+add_library(DataSet ${DATASET_SRC})
+target_link_libraries(DataSet  ${OpenCV_LIBS} utils)
 target_include_directories(DataSet PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

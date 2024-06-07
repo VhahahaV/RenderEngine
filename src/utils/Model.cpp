@@ -2,7 +2,7 @@
 // Created by czq on 24-6-5.
 //
 
-#include "Mesh.h"
+#include "Model.h"
 // #define TINYOBJLOADER_IMPLEMENTATION
 #include <fstream>
 #include <memory>
@@ -11,7 +11,7 @@
 #include "tinyply.h"
 #include "example-utils.hpp"
 
-std::unique_ptr<Mesh> loadByObj(const char* filename, const char* basepath, bool triangulate)
+std::unique_ptr<Model> loadByObj(const char* filename, const char* basepath, bool triangulate)
 {
     tinyobj::attrib_t attrib; // 所有的数据放在这里
     std::vector<tinyobj::shape_t> shapes;
@@ -49,7 +49,7 @@ std::unique_ptr<Mesh> loadByObj(const char* filename, const char* basepath, bool
 
     // ========================== 将读入的模型数据存入自己定义的数据结构中 ========================
 
-    auto MeshData = std::make_unique<Mesh>();
+    auto MeshData = std::make_unique<Model>();
     // 获取顶点的坐标以及法线位置
     {
         auto& verPos = attrib.vertices;
@@ -95,7 +95,7 @@ std::unique_ptr<Mesh> loadByObj(const char* filename, const char* basepath, bool
     return MeshData;
 }
 
-std::unique_ptr<Mesh> loadByPly(const char* filename,bool requireNormal, bool requireTexcoord)
+std::unique_ptr<Model> loadByPly(const char* filename,bool requireNormal, bool requireTexcoord)
 {
     std::cout << "........................................................................\n";
     std::cout << "Now Reading: " << filename << std::endl;
@@ -161,7 +161,7 @@ std::unique_ptr<Mesh> loadByPly(const char* filename,bool requireNormal, bool re
     // if (texcoords) std::cout << "\tRead " << texcoords->count << " total vertex texcoords " << std::endl;
     // if (faces) std::cout << "\tRead " << faces->count << " total faces (triangles) " << std::endl;
 
-    auto meshData = std::make_unique<Mesh>();
+    auto meshData = std::make_unique<Model>();
     // Example One: converting to your own application types
     {
         // vertices

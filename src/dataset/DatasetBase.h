@@ -4,13 +4,12 @@
 
 #ifndef DATASETBASE_H
 #define DATASETBASE_H
+#include "Model.h"
 
 class DatasetBase{
-    virtual void getCamera() const = 0;
     virtual void getMeshPath() const= 0;
     virtual void getJsonPath() const= 0;
-    virtual void loadJson() = 0;
-    virtual void loadMesh() = 0;
+    virtual std::vector<std::unique_ptr<Model>> loadMesh() = 0;
 
 };
 #endif //DATASETBASE_H

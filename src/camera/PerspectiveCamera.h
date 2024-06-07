@@ -4,10 +4,10 @@
 
 #ifndef PERSPECTIVECAMERA_H
 #define PERSPECTIVECAMERA_H
+#include "CameraBase.h"
 
 
-
-class PerspectiveCamera {
+class PerspectiveCamera : CameraBase{
 
 };
 

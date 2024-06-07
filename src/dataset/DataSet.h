@@ -7,21 +7,26 @@
 
 
 #include "DatasetBase.h"
-#include <iostream>
 #include <string>
+#include "CameraUtils.h"
+#include "Model.h"
+#include "ParseStruct.h"
 class DataSet : DatasetBase{
 
 protected:
+
     std::string mJsonPath;
-    struct Resolution
-    {
-        uint32_t w;
-        uint32_t h;
-        Resolution(uint32_t x,uint32_t y):w(x),h(y){}
-    } mResolution;
+    Resolution mResolution;
+    CameraInfo mCameraInfo;
+    std::vector<ObjectInfo> mObjectInfos = {};
 
 public:
-    void
+    ~DataSet() = default;
+    explicit DataSet(const std::string &filename);
+    std::vector<std::unique_ptr<Model>> loadMesh() override;
+    void getJsonPath() const override;
+    void getMeshPath() const override;
+    void debug();
 
 };
 
