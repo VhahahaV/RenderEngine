@@ -2,20 +2,36 @@
 // Created by czq on 24-6-4.
 //
 #include <argparse/argparse.hpp>
-#include "Model.h"
+#include "OpenglRender.h"
+ #include "Model.h"
 #include "DataSet.h"
 #include "Gui.h"
+#include "OrthographicCamera.h"
+#include "PerspectiveCamera.h"
 
 int main(int argc, char *argv[]) {
 
-    // std::cout << (input * input) << std::endl;
     // ::loadByObj("resource/Wooden chair.obj","",false);
     // ::loadByPly("resource/Wooden chair.ply",false,false);
     DataSet data_set("resource/test.json");
+    auto models = data_set.loadModels();
+    auto testModel = std::move(models.front());
+
     Gui gui;
     gui.initWindow({1280,720});
     gui.initImGui();
-    gui.mainLoop();
 
+    std::shared_ptr<CameraBase> camera = nullptr;
+    camera = std::make_shared<PerspectiveCamera>();
+    std::shared_ptr<RenderBase> render = nullptr;
+    render = std::make_shared<OpenglRender>();
+    render->loadModel(std::move(testModel));
+
+    // render.
+    gui.loadRender(std::move(render));
+    gui.loadCamera(camera);
+
+    gui.mainLoop();
+    gui.destroyWindow();
     return 0;
 }

@@ -11,8 +11,9 @@
 #include "tinyply.h"
 #include "example-utils.hpp"
 
-std::unique_ptr<Model> loadByObj(const char* filename, const char* basepath, bool triangulate)
+std::unique_ptr<Model> loadByObj(const ModelInfo &modelInfo, bool triangulate)
 {
+    auto filename = modelInfo.mFilename.c_str();
     tinyobj::attrib_t attrib; // 所有的数据放在这里
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
@@ -31,7 +32,7 @@ std::unique_ptr<Model> loadByObj(const char* filename, const char* basepath, boo
     std::string warn;
     std::string err;
     bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename,
-                                basepath, triangulate);
+                                "", triangulate);
 
     // 接下里就是从上面的属性中取值了
     if (!warn.empty())
@@ -50,6 +51,7 @@ std::unique_ptr<Model> loadByObj(const char* filename, const char* basepath, boo
     // ========================== 将读入的模型数据存入自己定义的数据结构中 ========================
 
     auto MeshData = std::make_unique<Model>();
+    MeshData->mModelInfo = modelInfo;
     // 获取顶点的坐标以及法线位置
     {
         auto& verPos = attrib.vertices;
@@ -95,8 +97,9 @@ std::unique_ptr<Model> loadByObj(const char* filename, const char* basepath, boo
     return MeshData;
 }
 
-std::unique_ptr<Model> loadByPly(const char* filename,bool requireNormal, bool requireTexcoord)
+std::unique_ptr<Model> loadByPly(const ModelInfo &modelInfo,bool requireNormal, bool requireTexcoord)
 {
+    auto filename = modelInfo.mFilename.c_str();
     std::cout << "........................................................................\n";
     std::cout << "Now Reading: " << filename << std::endl;
 
@@ -115,9 +118,9 @@ std::unique_ptr<Model> loadByPly(const char* filename,bool requireNormal, bool r
     if (!file_stream || file_stream->fail()) throw std::runtime_error(
         "file_stream failed to open " + std::string(filename));
 
-    file_stream->seekg(0, std::ios::end);
-    const float size_mb = file_stream->tellg() * float(1e-6);
-    file_stream->seekg(0, std::ios::beg);
+    // file_stream->seekg(0, std::ios::end);
+    // const float size_mb = file_stream->tellg() * float(1e-6);
+    // file_stream->seekg(0, std::ios::beg);
 
     tinyply::PlyFile file;
     file.parse_header(*file_stream);
@@ -162,6 +165,7 @@ std::unique_ptr<Model> loadByPly(const char* filename,bool requireNormal, bool r
     // if (faces) std::cout << "\tRead " << faces->count << " total faces (triangles) " << std::endl;
 
     auto meshData = std::make_unique<Model>();
+    meshData->mModelInfo = modelInfo;
     // Example One: converting to your own application types
     {
         // vertices

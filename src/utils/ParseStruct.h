@@ -4,18 +4,34 @@
 
 #ifndef PARSESTRUCT_H
 #define PARSESTRUCT_H
-#include "CameraUtils.h"
-#include "Model.h"
+
+#include <string>
+
 #include "glm/glm.hpp"
+
+
+enum class MODEL_TYPE
+{
+    Obj,
+    Ply
+};
+enum class CAMERA_TYPE
+{
+    Perspective,
+    Orthographic
+};
+
 struct Resolution
 {
-    int w=0;
-    int h=0;
-    void InitResolution(int x,int y)
+    float w=0;
+    float h=0;
+    void InitResolution(float x,float y)
     {
         w=x,h=y;
     }
 };
+
+
 struct CameraInfo
 {
     CAMERA_TYPE mType{};
@@ -25,13 +41,16 @@ struct CameraInfo
         mType=t;mFx=x1;mFy=y1;mCx=x2;mCy=y2;
     }
 };
-struct ObjectInfo
+
+
+struct ModelInfo
 {
     std::string mName{};
     MODEL_TYPE mType{};
     std::string mFilename{};
     glm::mat4 mModelMatrix{};
-    ObjectInfo(std::string  n,MODEL_TYPE t,std::string f,const glm::mat4 &m):
+    ModelInfo()=default;
+    ModelInfo(std::string  n,MODEL_TYPE t,std::string f,const glm::mat4 &m):
         mName(std::move(n)),mType(t),mFilename(std::move(f)),mModelMatrix(m){}
 
     void InitObjectInfo(std::string  n,MODEL_TYPE t,std::string f,glm::mat4 m)

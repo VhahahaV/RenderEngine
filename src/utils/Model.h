@@ -11,18 +11,16 @@
 #include <vector>
 #include <iostream>
 
-enum class MODEL_TYPE
-{
-    Obj,
-    Ply
-};
+#include "ParseStruct.h"
+
 
 struct  Model
 {
-    std::vector<float> mVertice;
-    std::vector<float> mNormal;
-    std::vector<float> mTexCoords;
-    std::vector<uint32_t> mFaceIndex;
+    ModelInfo mModelInfo{};
+    std::vector<float> mVertice{};
+    std::vector<float> mNormal{};
+    std::vector<float> mTexCoords{};
+    std::vector<uint32_t> mFaceIndex{};
     void debug()
     {
         std::cout << "---------------------------MESH DEBUG-----------------------------------\n";
@@ -37,8 +35,8 @@ struct  Model
 
 
 
-std::unique_ptr<Model> loadByObj(const char *filename, const char* basepath,bool triangulate);
-std::unique_ptr<Model> loadByPly(const char *filename,bool requireNormal, bool requireTexcoord);
+std::unique_ptr<Model> loadByObj(const ModelInfo &modelInfo,bool triangulate);
+std::unique_ptr<Model> loadByPly(const ModelInfo &modelInfo,bool requireNormal, bool requireTexcoord);
 
 
 #endif //MESH_H

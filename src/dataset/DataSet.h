@@ -18,14 +18,17 @@ protected:
     std::string mJsonPath;
     Resolution mResolution;
     CameraInfo mCameraInfo;
-    std::vector<ObjectInfo> mObjectInfos = {};
+    std::vector<ModelInfo> mObjectInfos = {};
 
 public:
     ~DataSet() = default;
     explicit DataSet(const std::string &filename);
-    std::vector<std::unique_ptr<Model>> loadMesh() override;
+    std::vector<std::unique_ptr<Model>> loadModels() override;
+    std::shared_ptr<CameraBase> loadCamera() override;
     void getJsonPath() const override;
     void getMeshPath() const override;
+
+
     void debug();
 
 };

@@ -8,14 +8,10 @@
 #include <array>
 #include <vector>
 
-enum class CAMERA_TYPE
-{
-    Perspective,
-    Orthographic
-};
 
 glm::mat4 getModelMatrix(const std::array<float,3> &scale,const std::array<float,3> &position,const std::vector<float> &rotation);
 
+// 相机内参矩阵K和fov的相互转换参考：https://blog.csdn.net/Vpn_zc/article/details/125976495
 
 
 #endif //CAMERAUTILS_H

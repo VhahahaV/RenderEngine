@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.28)
 PROJECT(RenderEngine)
 SET(CMAKE_CXX_STANDARD 17)
 
@@ -18,4 +18,4 @@ message(STATUS "OpenCV_LIBS = ${OpenCV_LIBS}")
 
 
 ADD_EXECUTABLE(${PROJECT_NAME} main.cpp)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE argparse utils DataSet gui)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE argparse utils DataSet gui Camera)

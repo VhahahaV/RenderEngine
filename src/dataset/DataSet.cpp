@@ -9,6 +9,10 @@
 #include <rapidjson/document.h>
 #include <iostream>
 
+#include "../camera/CameraBase.h"
+#include "../camera/OrthographicCamera.h"
+#include "../camera/PerspectiveCamera.h"
+
 DataSet::DataSet(const std::string &filename)
 {
     std::fstream f(filename);
@@ -29,7 +33,7 @@ DataSet::DataSet(const std::string &filename)
     const rapidjson::Value& resolutoins = doc["resolution"];
     if(resolutoins.IsArray())
     {
-        mResolution.InitResolution(resolutoins[0].GetInt(),resolutoins[1].GetInt());
+        mResolution.InitResolution(resolutoins[0].GetFloat(),resolutoins[1].GetFloat());
     }else throwParseError();
     const rapidjson::Value& camera = doc["camera"];
     if(camera.IsObject())
@@ -63,7 +67,7 @@ DataSet::DataSet(const std::string &filename)
             if(typeStr == ".obj") type = MODEL_TYPE::Obj;
             else if(typeStr == ".ply") type = MODEL_TYPE::Ply;
             else throwParseError();
-            ObjectInfo tmp(
+            ModelInfo tmp(
                 obj["name"].GetString(),
                 type,
                 obj["file"].GetString(),
@@ -76,9 +80,37 @@ DataSet::DataSet(const std::string &filename)
     debug();
 }
 
-std::vector<std::unique_ptr<Model>> DataSet::loadMesh()
+std::vector<std::unique_ptr<Model>> DataSet::loadModels()
 {
-    return {};
+    std::vector<std::unique_ptr<Model>> models;
+    for (auto &model : mObjectInfos)
+    {
+        if(model.mType == MODEL_TYPE::Obj)
+        {
+            // models.emplace((::loadByObj(model,false));
+            models.emplace_back(std::move(::loadByObj(model,false)));
+        }
+        else if(model.mType == MODEL_TYPE::Ply)
+        {
+            // loadByPly(model);
+            models.emplace_back(std::move(::loadByPly(model,false,false)));
+        }
+    }
+    return models;
+}
+
+std::shared_ptr<CameraBase> DataSet::loadCamera()
+{
+    std::shared_ptr<CameraBase> camera = nullptr;
+    if(mCameraInfo.mType == CAMERA_TYPE::Perspective)
+    {
+        camera = std::make_shared<PerspectiveCamera>();
+    }
+    else if(mCameraInfo.mType == CAMERA_TYPE::Orthographic)
+    {
+        camera = std::make_shared<OrthographicCamera>();
+    }
+    return camera;
 }
 
 void DataSet::getJsonPath() const
