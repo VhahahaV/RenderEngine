@@ -21,15 +21,16 @@ int main(int argc, char *argv[]) {
     gui.initWindow({1280,720});
     gui.initImGui();
 
+
     std::shared_ptr<CameraBase> camera = nullptr;
     camera = std::make_shared<PerspectiveCamera>();
     std::shared_ptr<RenderBase> render = nullptr;
     render = std::make_shared<OpenglRender>();
     render->loadModel(std::move(testModel));
-
     // render.
     gui.loadRender(std::move(render));
     gui.loadCamera(camera);
+    gui.setBackend();
 
     gui.mainLoop();
     gui.destroyWindow();

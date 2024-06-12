@@ -6,6 +6,8 @@
 
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <imgui_impl_vulkan.h>
+
 #include <vector>
 
 
@@ -57,11 +59,26 @@ void Gui::initImGui()
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();
+}
 
+void Gui::setBackend()
+{
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
-    ImGui_ImplOpenGL3_Init(mGlslVersion);
-
+    // Start the Dear ImGui frame
+    if (mRender->getType() == RENDER_TYPE::OpenGL)
+    {
+        ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
+        mRender->setupPlatform(&mMainWindowData);
+    }
+    else if (mRender->getType() == RENDER_TYPE::Vulkan)
+    {
+        ImGui_ImplGlfw_InitForVulkan(mWindow, true);
+        mRender->setupPlatform(&mMainWindowData);
+    }
+    else
+    {
+        throw std::runtime_error{"Render type not supported."};
+    }
 }
 
 void Gui::mainLoop()
@@ -81,24 +98,55 @@ void Gui::mainLoop()
         glfwPollEvents();
         resetBackground();
 
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
+
+        if(mRender->getType() == RENDER_TYPE::OpenGL)
+            ImGui_ImplOpenGL3_NewFrame();
+        else if(mRender->getType() == RENDER_TYPE::Vulkan)
+            ImGui_ImplVulkan_NewFrame();
+        else
+            throw std::runtime_error{"Render type not supported."};
+
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
         getInput();
         showComponent();
-        mRender->render(mCamera, mResolution);
+        renderFrame();
 
-        // Rendering
-        ImGui::Render();
+    }
 
+    cleanUp();
+}
+
+void Gui::renderFrame()
+{
+    // Rendering
+    ImGui::Render();
+    mRender->render(mCamera, mResolution);
+    if(mRender->getType() == RENDER_TYPE::OpenGL)
+    {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
         glfwSwapBuffers(mWindow);
     }
-    // destroy render
-    // TODO
+    else if(mRender->getType() == RENDER_TYPE::Vulkan)
+    {
+        ImDrawData* draw_data = ImGui::GetDrawData();
+        const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
+        if (!is_minimized)
+        {
+            ImGui_ImplVulkanH_Window* wd = &mMainWindowData;
+            ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+            wd->ClearValue.color.float32[0] = clear_color.x * clear_color.w;
+            wd->ClearValue.color.float32[1] = clear_color.y * clear_color.w;
+            wd->ClearValue.color.float32[2] = clear_color.z * clear_color.w;
+            wd->ClearValue.color.float32[3] = clear_color.w;
+            // FrameRender(wd, draw_data);
+            // FramePresent(wd);
+        }
+    }
+
+
+
 }
 
 void Gui::resetBackground()
@@ -218,4 +266,18 @@ void Gui::getInput()
     getMouseWheel();
     getMouseDrag();
 
+}
+
+void Gui::cleanUp()
+{
+    if (mRender && mRender->getType()==RENDER_TYPE::OpenGL)
+        ImGui_ImplOpenGL3_Shutdown();
+    else if (mRender && mRender->getType()==RENDER_TYPE::Vulkan)
+        ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    mRender->cleanup(&mMainWindowData);
+    glfwDestroyWindow(mWindow);
+    glfwTerminate();
 }

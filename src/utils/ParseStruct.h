@@ -21,6 +21,12 @@ enum class CAMERA_TYPE
     Orthographic
 };
 
+enum class RENDER_TYPE
+{
+    OpenGL,
+    Vulkan
+};
+
 struct Resolution
 {
     float w=0;

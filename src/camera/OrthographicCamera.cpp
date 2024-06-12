@@ -64,7 +64,8 @@ glm::mat4 OrthographicCamera::getProjMatrix(Resolution resolution) const
     // return (transM) * rotM;
     // return glm::ortho(0.f, resolution.w, 0.f,resolution.h, mNear, mFar);
     // glm::mat4 res = glm::mat4(1.0f);
-    return glm::ortho(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
+
+    return glm::ortho(-mScale, mScale, -mScale, mScale, mNear, mFar);
 }
 
 float OrthographicCamera::getFov() const

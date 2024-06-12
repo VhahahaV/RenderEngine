@@ -2,6 +2,8 @@
 // Created by czq on 24-6-8.
 //
 #include "OpenglRender.h"
+
+#include <imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include "debugFuncs.hpp"
@@ -38,6 +40,11 @@ OpenglRender::OpenglRender()
     mVAO = mVBO = mEBO = mProgram = GL_INVALID_VALUE;
     mModel = nullptr;
     makeProgram();
+}
+
+void OpenglRender::setupPlatform(ImGui_ImplVulkanH_Window* wd)
+{
+    ImGui_ImplOpenGL3_Init(mGlslVersion);
 }
 
 void OpenglRender::initRender()
@@ -94,7 +101,7 @@ void OpenglRender::render(std::shared_ptr<CameraBase> camera,const Resolution &r
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &modelMatrix[0][0]);
     }
     glBindVertexArray(mVAO);
-    if constexpr (1)
+    if constexpr (false)
     {
         outputObj(
             multiplyMatrix(
@@ -132,14 +139,13 @@ void OpenglRender::render(std::shared_ptr<CameraBase> camera,const Resolution &r
     glFinish();
 }
 
-void OpenglRender::cleanup()
+void OpenglRender::cleanup(ImGui_ImplVulkanH_Window* wd)
 {
     // Properly de-allocate all resources once they've outlived their purpose
     glDeleteVertexArrays(1, &mVAO);
     glDeleteBuffers(1, &mVBO);
     glDeleteBuffers(1, &mEBO);
-    // Terminate GLFW, clearing any resources allocated by GLFW.
-    // glfwTerminate();
+
 }
 
 void OpenglRender::makeProgram()
@@ -170,6 +176,11 @@ void OpenglRender::makeProgram()
 void OpenglRender::loadModel(std::unique_ptr<Model> model)
 {
     mModel = std::move(model);
+}
+
+RENDER_TYPE OpenglRender::getType() const
+{
+    return mType;
 }
 
 void OpenglRender::checkError(const GLuint& shader)
