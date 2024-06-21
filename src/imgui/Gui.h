@@ -11,15 +11,14 @@
 #include "ParseStruct.h"
 #include "CameraBase.h"
 #include "RenderBase.h"
-#include "VulkanRender.h"
 
 class Gui {
     GLFWwindow* mWindow = nullptr;
-    [[maybe_unused]] ImGui_ImplVulkanH_Window mMainWindowData{};
     Resolution mResolution{};
     glm::vec4 mClearColor = glm::vec4(0.45f, 0.55f, 0.60f, 1.00f);
     std::shared_ptr<CameraBase> mCamera{};
     std::shared_ptr<RenderBase> mRender{};
+    std::shared_ptr<ContextManager> mContext{};
 
 public:
     // Decide GL+GLSL versions
@@ -28,11 +27,9 @@ public:
     void loadCamera(std::shared_ptr<CameraBase> camera);
     void loadRender(std::shared_ptr<RenderBase> render);
     void initWindow(Resolution resolution);
-    void initImGui();
-    void setBackend();
+    void init();
     void mainLoop();
     void renderFrame();
-    void resetBackground();
     void destroyWindow();
     void showComponent();
     void getMouseWheel();
@@ -40,6 +37,8 @@ public:
     void getKeyBoard();
     void getInput();
     void cleanUp();
+
+
 
 
 

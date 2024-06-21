@@ -3,6 +3,7 @@
 //
 #include "OpenglRender.h"
 
+#include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -35,6 +36,14 @@ void main(){
 }
 )glsl";
 
+void OpenglContextManager::windowSizeCallback(GLFWwindow*, int width, int height) {
+    glViewport(0, 0, width, height);
+}
+
+void OpenglContextManager::cleanup(GLFWwindow* window){
+    //TODO
+}
+
 OpenglRender::OpenglRender()
 {
     mVAO = mVBO = mEBO = mProgram = GL_INVALID_VALUE;
@@ -42,13 +51,37 @@ OpenglRender::OpenglRender()
     makeProgram();
 }
 
-void OpenglRender::setupPlatform(ImGui_ImplVulkanH_Window* wd)
-{
-    ImGui_ImplOpenGL3_Init(mGlslVersion);
+void OpenglContextManager::setupPlatform(GLFWwindow* window) {
+    ImGui_ImplOpenGL3_Init("#version 130");
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
 }
 
-void OpenglRender::initRender()
+GLFWwindow* OpenglContextManager::makeContext()
 {
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", nullptr, nullptr);
+    if (window == nullptr)
+        throw std::runtime_error("window == nullptr");
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1); // Enable vsync
+    glfwSetWindowUserPointer(window, this);
+    return window;
+}
+
+void OpenglContextManager::render(ImDrawData* draw_data) {
+    // TODO
+}
+
+void OpenglContextManager::init(GLFWwindow* window) {
+    // TODO
+
+}
+
+
+
+
+void OpenglRender::init() {
     glGenVertexArrays(1, &mVAO);
     glGenBuffers(1, &mVBO);
     glGenBuffers(1, &mEBO);
@@ -69,10 +102,9 @@ void OpenglRender::initRender()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(unsigned int)*indexes.size(), indexes.data(), GL_STATIC_DRAW);
 
     glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs)
-
 }
 
-void OpenglRender::render(std::shared_ptr<CameraBase> camera,const Resolution &resolution)
+void OpenglRender::render(std::shared_ptr<CameraBase> camera,const Resolution &resolution, ImDrawData* draw_data)
 {
     // Render
     // Clear the colorbuffer
@@ -139,7 +171,7 @@ void OpenglRender::render(std::shared_ptr<CameraBase> camera,const Resolution &r
     glFinish();
 }
 
-void OpenglRender::cleanup(ImGui_ImplVulkanH_Window* wd)
+void OpenglRender::cleanup()
 {
     // Properly de-allocate all resources once they've outlived their purpose
     glDeleteVertexArrays(1, &mVAO);

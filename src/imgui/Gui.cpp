@@ -29,29 +29,27 @@ void Gui::loadRender(std::shared_ptr<RenderBase> render)
 void Gui::initWindow(Resolution resolution)
 {
     mResolution = resolution;
+    // TODO: context init virtual function call
     glfwSetErrorCallback(glfwErrorCallback);
-    if (!glfwInit())
-        return ;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    // if (!glfwInit())
+    //     return ;
+    // glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    // glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
     // Create window with graphics context
-    mWindow = glfwCreateWindow(mResolution.w, mResolution.h, "Render Engine ", nullptr, nullptr);
-    if (mWindow == nullptr)
-    {
-        throw std::runtime_error{"GLFW window could not be created."};
-    }
-    glfwMakeContextCurrent(mWindow);
+    mWindow = mContext->makeContext();
+    // // load glad
+    // if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    // {
+    //     throw std::runtime_error{"GLAD could not be loaded."};
+    // }
 
-    // load glad
-    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        throw std::runtime_error{"GLAD could not be loaded."};
-    }
 
-    glfwSwapInterval(1); // Enable vsync 垂直同步
+
 }
 
-void Gui::initImGui()
+void Gui::init()
 {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -59,34 +57,17 @@ void Gui::initImGui()
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();
+    mContext->setupPlatform(mWindow);
+    mRender->init();
 }
 
-void Gui::setBackend()
-{
-    // Setup Platform/Renderer backends
-    // Start the Dear ImGui frame
-    if (mRender->getType() == RENDER_TYPE::OpenGL)
-    {
-        ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
-        mRender->setupPlatform(&mMainWindowData);
-    }
-    else if (mRender->getType() == RENDER_TYPE::Vulkan)
-    {
-        ImGui_ImplGlfw_InitForVulkan(mWindow, true);
-        mRender->setupPlatform(&mMainWindowData);
-    }
-    else
-    {
-        throw std::runtime_error{"Render type not supported."};
-    }
-}
+
 
 void Gui::mainLoop()
 {
     if(mWindow == nullptr || mResolution.h == 0 || mResolution.w == 0) {
         throw std::runtime_error("you need run GraphicsUI::initWindow before calling mainLoop");
     }
-    mRender->initRender();
 
     while (!glfwWindowShouldClose(mWindow))
     {
@@ -95,8 +76,8 @@ void Gui::mainLoop()
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
         // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+
         glfwPollEvents();
-        resetBackground();
 
 
         if(mRender->getType() == RENDER_TYPE::OpenGL)
@@ -122,40 +103,23 @@ void Gui::renderFrame()
 {
     // Rendering
     ImGui::Render();
-    mRender->render(mCamera, mResolution);
+    ImDrawData* draw_data = ImGui::GetDrawData();
+
     if(mRender->getType() == RENDER_TYPE::OpenGL)
     {
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        mRender->render(mCamera, mResolution, draw_data);
+        ImGui_ImplOpenGL3_RenderDrawData(draw_data);
         glfwSwapBuffers(mWindow);
     }
     else if(mRender->getType() == RENDER_TYPE::Vulkan)
     {
-        ImDrawData* draw_data = ImGui::GetDrawData();
         const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
         if (!is_minimized)
         {
-            ImGui_ImplVulkanH_Window* wd = &mMainWindowData;
-            ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-            wd->ClearValue.color.float32[0] = clear_color.x * clear_color.w;
-            wd->ClearValue.color.float32[1] = clear_color.y * clear_color.w;
-            wd->ClearValue.color.float32[2] = clear_color.z * clear_color.w;
-            wd->ClearValue.color.float32[3] = clear_color.w;
-            // FrameRender(wd, draw_data);
-            // FramePresent(wd);
+            mRender->render(mCamera, mResolution,draw_data);
         }
     }
 
-
-
-}
-
-void Gui::resetBackground()
-{
-    int display_w, display_h;
-    glfwGetFramebufferSize(mWindow, &display_w, &display_h);
-    glViewport(0, 0, display_w, display_h);
-    glClearColor(mClearColor.x * mClearColor.w, mClearColor.y * mClearColor.w, mClearColor.z * mClearColor.w, mClearColor.w);
-    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void Gui::destroyWindow()
@@ -270,14 +234,16 @@ void Gui::getInput()
 
 void Gui::cleanUp()
 {
-    if (mRender && mRender->getType()==RENDER_TYPE::OpenGL)
-        ImGui_ImplOpenGL3_Shutdown();
-    else if (mRender && mRender->getType()==RENDER_TYPE::Vulkan)
-        ImGui_ImplVulkan_Shutdown();
+    // if (mRender && mRender->getType()==RENDER_TYPE::OpenGL)
+    //     ImGui_ImplOpenGL3_Shutdown();
+    // else if (mRender && mRender->getType()==RENDER_TYPE::Vulkan)
+    //     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    mRender->cleanup(&mMainWindowData);
+    mRender->cleanup();
+    mContext->cleanup(mWindow);
+
     glfwDestroyWindow(mWindow);
     glfwTerminate();
 }
