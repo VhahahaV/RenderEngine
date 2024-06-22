@@ -13,6 +13,7 @@
 #include "RenderBase.h"
 
 class Gui {
+protected:
     GLFWwindow* mWindow = nullptr;
     Resolution mResolution{};
     glm::vec4 mClearColor = glm::vec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -26,6 +27,7 @@ public:
     static void glfwErrorCallback(int error, const char* description);
     void loadCamera(std::shared_ptr<CameraBase> camera);
     void loadRender(std::shared_ptr<RenderBase> render);
+    void loadContext(std::shared_ptr<ContextManager> context);
     void initWindow(Resolution resolution);
     void init();
     void mainLoop();

@@ -26,7 +26,6 @@ GLFWwindow* VulkanContextManager::makeContext()
     for (uint32_t i = 0; i < extensions_count; i++)
         extensions.push_back(glfw_extensions[i]);
     SetupVulkan(extensions);
-    glfwSwapInterval(1); // Enable vsync 垂直同步
     glfwSetWindowUserPointer(window, this);
     return window;
 }
@@ -36,6 +35,7 @@ VulkanRender::~VulkanRender()
 
 void VulkanContextManager::setupPlatform(GLFWwindow* window)
 {
+    ImGui_ImplGlfw_InitForVulkan(window, true);
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.Instance = mInstance;
     init_info.PhysicalDevice = mPhysicalDevice;
@@ -52,7 +52,6 @@ void VulkanContextManager::setupPlatform(GLFWwindow* window)
     init_info.Allocator = mAllocator;
     init_info.CheckVkResultFn = check_vk_result;
     ImGui_ImplVulkan_Init(&init_info);
-    ImGui_ImplGlfw_InitForVulkan(window, true);
 
 }
 
@@ -60,13 +59,9 @@ void VulkanRender::init(){
     // TODO
 }
 
-void VulkanRender::render(std::shared_ptr<CameraBase> camera, const Resolution& resolution, ImDrawData* draw_data) {
+void VulkanRender::render(std::shared_ptr<CameraBase> camera, const Resolution& resolution) {
     // TODO
-    const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
-    if(is_minimized) return;
     // 1. pass uniform(e.g. MVP)
-    // 2.
-    mVulkanContext->render(draw_data);
 }
 
 // void VulkanRender::render(std::shared_ptr<CameraBase> camera, const Resolution& resolution,ImGui_ImplVulkanH_Window* wd,ImDrawData* draw_data)
@@ -74,13 +69,6 @@ void VulkanRender::render(std::shared_ptr<CameraBase> camera, const Resolution& 
 
 // }
 void VulkanContextManager::init(GLFWwindow* window) {
-    ImVector<const char*> extensions;
-    uint32_t extensions_count = 0;
-    const char** glfw_extensions = glfwGetRequiredInstanceExtensions(&extensions_count);
-    for (uint32_t i = 0; i < extensions_count; i++)
-        extensions.push_back(glfw_extensions[i]);
-    SetupVulkan(extensions);
-
     // Create Window Surface
     VkSurfaceKHR surface;
     VkResult err = glfwCreateWindowSurface(mInstance, window, mAllocator, &surface);
@@ -157,9 +145,31 @@ void VulkanContextManager::setCallback(GLFWwindow* window)
     glfwSetWindowSizeCallback(window, windowSizeCallback);
 }
 
+void VulkanContextManager::resizeWindowSize(GLFWwindow* window)
+{
+    if (mSwapChainRebuild)
+    {
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+        if (width > 0 && height > 0)
+        {
+            ImGui_ImplVulkan_SetMinImageCount(mMinImageCount);
+            ImGui_ImplVulkanH_CreateOrResizeWindow(mInstance, mPhysicalDevice, mDevice, &mMainWindowData, mQueueFamily, mAllocator, width, height, mMinImageCount);
+            mMainWindowData.FrameIndex = 0;
+            mSwapChainRebuild = false;
+        }
+    }
+}
+
 
 void VulkanContextManager::render(ImDrawData* draw_data)
 {
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+    mMainWindowData.ClearValue.color.float32[0] = clear_color.x * clear_color.w;
+    mMainWindowData.ClearValue.color.float32[1] = clear_color.y * clear_color.w;
+    mMainWindowData.ClearValue.color.float32[2] = clear_color.z * clear_color.w;
+    mMainWindowData.ClearValue.color.float32[3] = clear_color.w;
     VkResult err;
 
     VkSemaphore image_acquired_semaphore  = mMainWindowData.FrameSemaphores[mMainWindowData.SemaphoreIndex].ImageAcquiredSemaphore;
@@ -224,26 +234,6 @@ void VulkanContextManager::render(ImDrawData* draw_data)
         VulkanContextManager::check_vk_result(err);
     }
 
-    {
-        if (mSwapChainRebuild)
-            return;
-        VkSemaphore render_complete_semaphore = mMainWindowData.FrameSemaphores[mMainWindowData.SemaphoreIndex].RenderCompleteSemaphore;
-        VkPresentInfoKHR info = {};
-        info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        info.waitSemaphoreCount = 1;
-        info.pWaitSemaphores = &render_complete_semaphore;
-        info.swapchainCount = 1;
-        info.pSwapchains = &mMainWindowData.Swapchain;
-        info.pImageIndices = &mMainWindowData.FrameIndex;
-        VkResult err = vkQueuePresentKHR(mQueue, &info);
-        if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
-        {
-            mSwapChainRebuild = true;
-            return;
-        }
-        VulkanContextManager::check_vk_result(err);
-        mMainWindowData.SemaphoreIndex = (mMainWindowData.SemaphoreIndex + 1) % mMainWindowData.SemaphoreCount; // Now we can use the next set of semaphores
-    }
     {// VulkanRender::FramePresent(ImGui_ImplVulkanH_Window* wd)
         if (mSwapChainRebuild)
             return;
@@ -255,7 +245,7 @@ void VulkanContextManager::render(ImDrawData* draw_data)
         info.swapchainCount = 1;
         info.pSwapchains = &mMainWindowData.Swapchain;
         info.pImageIndices = &mMainWindowData.FrameIndex;
-        VkResult err = vkQueuePresentKHR(mQueue, &info);
+        err = vkQueuePresentKHR(mQueue, &info);
         if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
         {
             mSwapChainRebuild = true;
@@ -441,15 +431,4 @@ void VulkanContextManager::SetupVulkanWindow(VkSurfaceKHR surface, int width, in
         &mMainWindowData, mQueueFamily, mAllocator, width, height, mMinImageCount);
 }
 
-void VulkanRender::FrameRender(ImGui_ImplVulkanH_Window* wd,ImDrawData* draw_data)
-{
-
-
-}
-
-void VulkanRender::FramePresent(ImGui_ImplVulkanH_Window* wd)
-{
-
-
-}
 

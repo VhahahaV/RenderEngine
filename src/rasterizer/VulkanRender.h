@@ -38,6 +38,8 @@ public:
     static bool IsExtensionAvailable(const ImVector<VkExtensionProperties>& properties, const char* extension);
     void render(ImDrawData* draw_data) override;
     void setCallback(GLFWwindow* window) override;
+    void resizeWindowSize(GLFWwindow* window) override;
+
 public:
     static void windowSizeCallback(GLFWwindow*, int, int);
 };
@@ -46,20 +48,17 @@ class VulkanRender final : public RenderBase
 {
 private:
     RENDER_TYPE mType = RENDER_TYPE::Vulkan;
-    std::shared_ptr<VulkanContextManager> mVulkanContext{};
 
 public:
 
     ~VulkanRender() override;
     void init() override;
-    void render(std::shared_ptr<CameraBase> camera, const Resolution& resolution, ImDrawData* draw_data) override;
+    void render(std::shared_ptr<CameraBase> camera, const Resolution& resolution) override;
     void loadModel(std::unique_ptr<Model> model) override;
     [[nodiscard]] RENDER_TYPE getType() const override;
 
-    void FrameRender(ImGui_ImplVulkanH_Window* wd,ImDrawData* draw_data);
     void cleanup() override;
 
-    void FramePresent(ImGui_ImplVulkanH_Window* wd);
 
 };
 

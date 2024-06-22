@@ -8,6 +8,7 @@
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_vulkan.h>
 
+#include <utility>
 #include <vector>
 
 
@@ -24,6 +25,11 @@ void Gui::loadCamera(std::shared_ptr<CameraBase> camera)
 void Gui::loadRender(std::shared_ptr<RenderBase> render)
 {
     mRender = std::move(render);
+}
+
+void Gui::loadContext(std::shared_ptr<ContextManager> context)
+{
+    mContext = std::move(context);
 }
 
 void Gui::initWindow(Resolution resolution)
@@ -44,7 +50,7 @@ void Gui::initWindow(Resolution resolution)
     // {
     //     throw std::runtime_error{"GLAD could not be loaded."};
     // }
-
+    mContext->init(mWindow);
 
 
 }
@@ -55,6 +61,8 @@ void Gui::init()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     // Setup Dear ImGui style
+    //     throw std::runtime_error{"GLAD could not be loaded."};
+    // }
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();
     mContext->setupPlatform(mWindow);
@@ -78,7 +86,7 @@ void Gui::mainLoop()
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 
         glfwPollEvents();
-
+        mContext->resizeWindowSize(mWindow);
 
         if(mRender->getType() == RENDER_TYPE::OpenGL)
             ImGui_ImplOpenGL3_NewFrame();
@@ -107,7 +115,7 @@ void Gui::renderFrame()
 
     if(mRender->getType() == RENDER_TYPE::OpenGL)
     {
-        mRender->render(mCamera, mResolution, draw_data);
+        mRender->render(mCamera, mResolution);
         ImGui_ImplOpenGL3_RenderDrawData(draw_data);
         glfwSwapBuffers(mWindow);
     }
@@ -116,9 +124,10 @@ void Gui::renderFrame()
         const bool is_minimized = (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
         if (!is_minimized)
         {
-            mRender->render(mCamera, mResolution,draw_data);
+            mRender->render(mCamera, mResolution);
         }
     }
+    mContext->render(draw_data);
 
 }
 

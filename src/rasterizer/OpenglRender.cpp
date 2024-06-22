@@ -37,7 +37,6 @@ void main(){
 )glsl";
 
 void OpenglContextManager::windowSizeCallback(GLFWwindow*, int width, int height) {
-    glViewport(0, 0, width, height);
 }
 
 void OpenglContextManager::cleanup(GLFWwindow* window){
@@ -58,6 +57,8 @@ void OpenglContextManager::setupPlatform(GLFWwindow* window) {
 
 GLFWwindow* OpenglContextManager::makeContext()
 {
+    if (!glfwInit())
+        throw std::runtime_error("glfw init error");
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", nullptr, nullptr);
@@ -66,11 +67,29 @@ GLFWwindow* OpenglContextManager::makeContext()
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
     glfwSetWindowUserPointer(window, this);
+    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        throw std::runtime_error{"GLAD could not be loaded."};
+    }
     return window;
 }
 
 void OpenglContextManager::render(ImDrawData* draw_data) {
     // TODO
+    ImGui_ImplOpenGL3_RenderDrawData(draw_data);
+
+}
+
+void OpenglContextManager::resizeWindowSize(GLFWwindow* window)
+{
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
+
+}
+
+void OpenglContextManager::setCallback(GLFWwindow* window)
+{
+
 }
 
 void OpenglContextManager::init(GLFWwindow* window) {
@@ -104,12 +123,13 @@ void OpenglRender::init() {
     glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs)
 }
 
-void OpenglRender::render(std::shared_ptr<CameraBase> camera,const Resolution &resolution, ImDrawData* draw_data)
+void OpenglRender::render(std::shared_ptr<CameraBase> camera,const Resolution &resolution)
 {
     // Render
     // Clear the colorbuffer
-
-
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+    glClear(GL_COLOR_BUFFER_BIT);
     // Draw our first triangle
     glUseProgram(mProgram);
     {

@@ -20,13 +20,16 @@ int main(int argc, char *argv[]) {
     std::shared_ptr<CameraBase> camera = nullptr;
     camera = std::make_shared<PerspectiveCamera>();
     Gui gui;
-    gui.initWindow({1280,720});
+    std::shared_ptr<ContextManager> context = nullptr;
     std::shared_ptr<RenderBase> render = nullptr;
-    render = std::make_shared<VulkanRender>();
+    context = std::make_shared<OpenglContextManager>();
+    gui.loadContext(context);
+    gui.initWindow({1280,720});
+    render = std::make_shared<OpenglRender>();
     render->loadModel(std::move(testModel));
 
     // render.
-    gui.loadRender(std::move(render));
+    gui.loadRender(render);
     gui.loadCamera(camera);
 
 

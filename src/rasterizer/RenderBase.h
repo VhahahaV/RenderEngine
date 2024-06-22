@@ -17,7 +17,7 @@ private:
 
 public:
     virtual ~RenderBase() = default;
-    virtual void render(std::shared_ptr<CameraBase> camera,const Resolution &resolution, ImDrawData* draw_data) = 0;
+    virtual void render(std::shared_ptr<CameraBase> camera,const Resolution &resolution) = 0;
     virtual void init() = 0;
     virtual void cleanup() = 0;
 
@@ -34,6 +34,7 @@ public:
     virtual void init(GLFWwindow* window) = 0;
     virtual void render(ImDrawData* draw_data) = 0;
     virtual void setCallback(GLFWwindow* window) = 0;
+    virtual void resizeWindowSize(GLFWwindow* window) = 0;
 };
 
 #endif //RENDERBASE_H

@@ -16,6 +16,9 @@ public:
     void setupPlatform(GLFWwindow* window) override;
     void init(GLFWwindow* window) override;
     void render(ImDrawData* draw_data) override;
+    void resizeWindowSize(GLFWwindow* window) override;
+    void setCallback(GLFWwindow* window) override;
+
 public:// callbacks
     static void windowSizeCallback(GLFWwindow*, int, int);
 
@@ -29,7 +32,7 @@ private:
 public:
     OpenglRender();
     void init() override;
-    void render(std::shared_ptr<CameraBase> camera,const Resolution &resolution, ImDrawData* draw_data) override;
+    void render(std::shared_ptr<CameraBase> camera,const Resolution &resolution) override;
     void cleanup() override;
     void makeProgram();
     void loadModel(std::unique_ptr<Model> model) override;
