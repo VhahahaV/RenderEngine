@@ -6,7 +6,7 @@
 #define VULKANRENDER_H
 
 #include "RenderBase.h"
-
+#include <vector>
 //https://frguthmann.github.io/posts/vulkan_imgui/
 // https://cloud.tencent.com/developer/ask/sof/106785584
 class VulkanContextManager: public ContextManager
@@ -26,6 +26,18 @@ protected:
 
     int mMinImageCount = 2;
     bool mSwapChainRebuild = false;
+
+
+    VkBuffer indexBuffer;
+    VkDeviceMemory indexBufferMemory;
+    VkBuffer vertexBuffer;
+    VkDeviceMemory vertexBufferMemory;
+    VkBuffer uniformBuffer;
+    VkDeviceMemory uniformBufferMemory;
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    VkCommandPool commandPool;
+    std::vector<VkCommandBuffer> commandBuffers;
 public:
     GLFWwindow* makeContext() override;
     void SetupVulkan(ImVector<const char*> instance_extensions);
@@ -40,6 +52,15 @@ public:
     void setCallback(GLFWwindow* window) override;
     void resizeWindowSize(GLFWwindow* window) override;
 
+    void createVertexBuffer(const std::shared_ptr<Model>& model);
+    void createIndexBuffer(const std::shared_ptr<Model>& model);
+    void createDescriptorSetLayout();
+    void createUniformBuffer();
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+                  VkDeviceMemory& bufferMemory);
+    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+
 public:
     static void windowSizeCallback(GLFWwindow*, int, int);
 };
@@ -48,6 +69,8 @@ class VulkanRender final : public RenderBase
 {
 private:
     RENDER_TYPE mType = RENDER_TYPE::Vulkan;
+    std::unique_ptr<Model> mModel;
+
 
 public:
 
@@ -58,6 +81,7 @@ public:
     [[nodiscard]] RENDER_TYPE getType() const override;
 
     void cleanup() override;
+
 
 
 };

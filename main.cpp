@@ -12,6 +12,7 @@
 
 int main(int argc, char *argv[]) {
 
+
     // ::loadByObj("resource/Wooden chair.obj","",false);
     // ::loadByPly("resource/Wooden chair.ply",false,false);
     DataSet data_set("resource/test.json");

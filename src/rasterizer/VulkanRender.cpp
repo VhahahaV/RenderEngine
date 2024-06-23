@@ -16,7 +16,8 @@ GLFWwindow* VulkanContextManager::makeContext()
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     GLFWwindow* window = glfwCreateWindow(
         1280, 720, "Dear ImGui GLFW+Vulkan example", nullptr, nullptr);
-    if (!glfwVulkanSupported()) {
+    if (!glfwVulkanSupported())
+    {
         throw std::runtime_error("GLFW: Vulkan Not Supported\n");
     }
 
@@ -52,23 +53,30 @@ void VulkanContextManager::setupPlatform(GLFWwindow* window)
     init_info.Allocator = mAllocator;
     init_info.CheckVkResultFn = check_vk_result;
     ImGui_ImplVulkan_Init(&init_info);
-
 }
 
-void VulkanRender::init(){
+void VulkanRender::init()
+{
     // TODO
 }
 
-void VulkanRender::render(std::shared_ptr<CameraBase> camera, const Resolution& resolution) {
+void VulkanRender::render(std::shared_ptr<CameraBase> camera, const Resolution& resolution)
+{
     // TODO
     // 1. pass uniform(e.g. MVP)
+
+    // void* data;
+    // vkMapMemory(device, uniformBufferMemory, 0, sizeof(glm::mat4) * 3, 0, &data);
+    // memcpy(data, &ubo, sizeof(ubo));
+    // vkUnmapMemory(device, uniformBufferMemory);
 }
 
 // void VulkanRender::render(std::shared_ptr<CameraBase> camera, const Resolution& resolution,ImGui_ImplVulkanH_Window* wd,ImDrawData* draw_data)
 // {
 
 // }
-void VulkanContextManager::init(GLFWwindow* window) {
+void VulkanContextManager::init(GLFWwindow* window)
+{
     // Create Window Surface
     VkSurfaceKHR surface;
     VkResult err = glfwCreateWindowSurface(mInstance, window, mAllocator, &surface);
@@ -86,22 +94,21 @@ void VulkanContextManager::init(GLFWwindow* window) {
     }
 }
 
-void VulkanContextManager::cleanup(GLFWwindow* window){
+void VulkanContextManager::cleanup(GLFWwindow* window)
+{
     auto err = vkDeviceWaitIdle(mDevice);
     check_vk_result(err);
 
     vkDestroyDescriptorPool(mDevice, mDescriptorPool, mAllocator);
     vkDestroyDevice(mDevice, mAllocator);
     vkDestroyInstance(mInstance, mAllocator);
-
     // clean window
     ImGui_ImplVulkanH_DestroyWindow(mInstance, mDevice, &mMainWindowData, mAllocator);
-
 }
 
 void VulkanRender::loadModel(std::unique_ptr<Model> model)
 {
-
+    mModel = std::move(model);
 }
 
 void VulkanContextManager::check_vk_result(VkResult err)
@@ -118,24 +125,193 @@ RENDER_TYPE VulkanRender::getType() const
     return mType;
 }
 
-void VulkanRender::cleanup() {
+void VulkanRender::cleanup()
+{
     // TODO
 }
 
+void VulkanContextManager::createVertexBuffer(const std::shared_ptr<Model>& mModel)
+{
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
 
-bool VulkanContextManager::IsExtensionAvailable(const ImVector<VkExtensionProperties>& properties, const char* extension)
+    VkDeviceSize bufferSize = sizeof(mModel->mVertice) * mModel->mVertice.size();
+    createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    //*****填充顶点缓冲区*****
+    void* data;
+    //将缓冲区内存映射(mapping the buffer memory)到CPU可访问的内存中完成
+    vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+    //将顶点数据拷贝到映射内存中
+    memcpy(data, mModel->mVertice.data(), (size_t)bufferSize);
+    //取消映射
+    vkUnmapMemory(mDevice, stagingBufferMemory);
+
+    createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+
+    copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+
+    vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+    vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
+
+}
+// 创建索引缓冲区
+void VulkanContextManager::createIndexBuffer(const std::shared_ptr<Model>& mModel) {
+    VkDeviceSize bufferSize = sizeof(mModel->mFaceIndex[0]) * mModel->mFaceIndex.size();
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, mModel->mFaceIndex.data(), (size_t)bufferSize);
+    vkUnmapMemory(mDevice, stagingBufferMemory);
+
+    createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+
+    copyBuffer(stagingBuffer, indexBuffer, bufferSize);
+
+    vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+    vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
+}
+
+void VulkanContextManager::createUniformBuffer()
+{
+    VkDeviceSize bufferSize = sizeof(glm::mat4)*3;
+    createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffer,
+                 uniformBufferMemory);
+}
+
+uint32_t VulkanContextManager::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memProperties);
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+    {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+        {
+            return i;
+        }
+    }
+
+
+    throw std::runtime_error("failed to find suitable memory type!");
+}
+
+void VulkanContextManager::createDescriptorSetLayout()
+{
+    VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+    uboLayoutBinding.binding = 0;
+    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding.descriptorCount = 3;
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
+    VkDescriptorSetLayout descriptorSetLayout;
+    VkPipelineLayout pipelineLayout;
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &uboLayoutBinding;
+
+    if (vkCreateDescriptorSetLayout(mDevice, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create descriptor set layout!");
+    }
+
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+}
+
+//创建缓冲区
+void VulkanContextManager::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+                  VkDeviceMemory& bufferMemory)
+{
+    //创建缓冲区
+    VkBufferCreateInfo bufferInfo = {};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    if (vkCreateBuffer(mDevice, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create buffer!");
+    }
+
+    //内存需求
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(mDevice, buffer, &memRequirements);
+
+    //内存分配
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+
+    if (vkAllocateMemory(mDevice, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to allocate buffer memory!");
+    }
+    //将内存关联到缓冲区
+    vkBindBufferMemory(mDevice, buffer, bufferMemory, 0);
+}
+
+//用于从一个缓冲区拷贝数据到另一个缓冲区
+void VulkanContextManager::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = commandPool;
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(mDevice, &allocInfo, &commandBuffer);
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    VkBufferCopy copyRegion = {};
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(graphicsQueue);
+
+    vkFreeCommandBuffers(mDevice, commandPool, 1, &commandBuffer);
+}
+
+bool VulkanContextManager::IsExtensionAvailable(const ImVector<VkExtensionProperties>& properties,
+                                                const char* extension)
 {
     for (const VkExtensionProperties& p : properties)
         if (strcmp(p.extensionName, extension) == 0)
             return true;
     return false;
 }
-void VulkanContextManager::windowSizeCallback(GLFWwindow* window,int width, int height) {
-    VulkanContextManager* self = (VulkanContextManager*) glfwGetWindowUserPointer(window);
+
+void VulkanContextManager::windowSizeCallback(GLFWwindow* window, int width, int height)
+{
+    VulkanContextManager* self = (VulkanContextManager*)glfwGetWindowUserPointer(window);
     ImGui_ImplVulkan_SetMinImageCount(self->mMinImageCount);
     ImGui_ImplVulkanH_CreateOrResizeWindow(self->mInstance,
-        self->mPhysicalDevice, self->mDevice, &self->mMainWindowData, self->mQueueFamily,
-        self->mAllocator, width, height, self->mMinImageCount);
+                                           self->mPhysicalDevice, self->mDevice, &self->mMainWindowData,
+                                           self->mQueueFamily,
+                                           self->mAllocator, width, height, self->mMinImageCount);
     self->mMainWindowData.FrameIndex = 0;
     // TODO:
 }
@@ -154,7 +330,8 @@ void VulkanContextManager::resizeWindowSize(GLFWwindow* window)
         if (width > 0 && height > 0)
         {
             ImGui_ImplVulkan_SetMinImageCount(mMinImageCount);
-            ImGui_ImplVulkanH_CreateOrResizeWindow(mInstance, mPhysicalDevice, mDevice, &mMainWindowData, mQueueFamily, mAllocator, width, height, mMinImageCount);
+            ImGui_ImplVulkanH_CreateOrResizeWindow(mInstance, mPhysicalDevice, mDevice, &mMainWindowData, mQueueFamily,
+                                                   mAllocator, width, height, mMinImageCount);
             mMainWindowData.FrameIndex = 0;
             mSwapChainRebuild = false;
         }
@@ -172,9 +349,12 @@ void VulkanContextManager::render(ImDrawData* draw_data)
     mMainWindowData.ClearValue.color.float32[3] = clear_color.w;
     VkResult err;
 
-    VkSemaphore image_acquired_semaphore  = mMainWindowData.FrameSemaphores[mMainWindowData.SemaphoreIndex].ImageAcquiredSemaphore;
-    VkSemaphore render_complete_semaphore = mMainWindowData.FrameSemaphores[mMainWindowData.SemaphoreIndex].RenderCompleteSemaphore;
-    err = vkAcquireNextImageKHR(mDevice, mMainWindowData.Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &mMainWindowData.FrameIndex);
+    VkSemaphore image_acquired_semaphore = mMainWindowData.FrameSemaphores[mMainWindowData.SemaphoreIndex].
+        ImageAcquiredSemaphore;
+    VkSemaphore render_complete_semaphore = mMainWindowData.FrameSemaphores[mMainWindowData.SemaphoreIndex].
+        RenderCompleteSemaphore;
+    err = vkAcquireNextImageKHR(mDevice, mMainWindowData.Swapchain, UINT64_MAX, image_acquired_semaphore,
+                                VK_NULL_HANDLE, &mMainWindowData.FrameIndex);
     if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
     {
         mSwapChainRebuild = true;
@@ -184,7 +364,8 @@ void VulkanContextManager::render(ImDrawData* draw_data)
 
     ImGui_ImplVulkanH_Frame* fd = &mMainWindowData.Frames[mMainWindowData.FrameIndex];
     {
-        err = vkWaitForFences(mDevice, 1, &fd->Fence, VK_TRUE, UINT64_MAX);    // wait indefinitely instead of periodically checking
+        err = vkWaitForFences(mDevice, 1, &fd->Fence, VK_TRUE, UINT64_MAX);
+        // wait indefinitely instead of periodically checking
         VulkanContextManager::check_vk_result(err);
 
         err = vkResetFences(mDevice, 1, &fd->Fence);
@@ -214,6 +395,7 @@ void VulkanContextManager::render(ImDrawData* draw_data)
     // Record dear imgui primitives into command buffer
     ImGui_ImplVulkan_RenderDrawData(draw_data, fd->CommandBuffer);
 
+
     // Submit command buffer
     vkCmdEndRenderPass(fd->CommandBuffer);
     {
@@ -234,10 +416,12 @@ void VulkanContextManager::render(ImDrawData* draw_data)
         VulkanContextManager::check_vk_result(err);
     }
 
-    {// VulkanRender::FramePresent(ImGui_ImplVulkanH_Window* wd)
+    {
+        // VulkanRender::FramePresent(ImGui_ImplVulkanH_Window* wd)
         if (mSwapChainRebuild)
             return;
-        VkSemaphore render_complete_semaphore = mMainWindowData.FrameSemaphores[mMainWindowData.SemaphoreIndex].RenderCompleteSemaphore;
+        VkSemaphore render_complete_semaphore = mMainWindowData.FrameSemaphores[mMainWindowData.SemaphoreIndex].
+            RenderCompleteSemaphore;
         VkPresentInfoKHR info = {};
         info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         info.waitSemaphoreCount = 1;
@@ -252,7 +436,8 @@ void VulkanContextManager::render(ImDrawData* draw_data)
             return;
         }
         VulkanContextManager::check_vk_result(err);
-        mMainWindowData.SemaphoreIndex = (mMainWindowData.SemaphoreIndex + 1) % mMainWindowData.SemaphoreCount; // Now we can use the next set of semaphores
+        mMainWindowData.SemaphoreIndex = (mMainWindowData.SemaphoreIndex + 1) % mMainWindowData.SemaphoreCount;
+        // Now we can use the next set of semaphores
     }
 }
 
@@ -314,7 +499,6 @@ void VulkanContextManager::SetupVulkan(ImVector<const char*> instance_extensions
         create_info.ppEnabledExtensionNames = instance_extensions.Data;
         err = vkCreateInstance(&create_info, mAllocator, &mInstance);
         check_vk_result(err);
-
     }
 
     // Select Physical Device (GPU)
@@ -349,7 +533,7 @@ void VulkanContextManager::SetupVulkan(ImVector<const char*> instance_extensions
         vkEnumerateDeviceExtensionProperties(mPhysicalDevice, nullptr, &properties_count, properties.Data);
 
 
-        const float queue_priority[] = { 1.0f };
+        const float queue_priority[] = {1.0f};
         VkDeviceQueueCreateInfo queue_info[1] = {};
         queue_info[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queue_info[0].queueFamilyIndex = mQueueFamily;
@@ -372,7 +556,8 @@ void VulkanContextManager::SetupVulkan(ImVector<const char*> instance_extensions
     {
         VkDescriptorPoolSize pool_sizes[] =
         {
-            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 },
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1},
+            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,2}
         };
         VkDescriptorPoolCreateInfo pool_info = {};
         pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -387,7 +572,6 @@ void VulkanContextManager::SetupVulkan(ImVector<const char*> instance_extensions
 
 void VulkanContextManager::SetupVulkanWindow(VkSurfaceKHR surface, int width, int height)
 {
-
     mMainWindowData.Surface = surface;
 
     // Check for WSI support
@@ -419,7 +603,7 @@ void VulkanContextManager::SetupVulkanWindow(VkSurfaceKHR surface, int width, in
 #ifdef APP_USE_UNLIMITED_FRAME_RATE
     VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_FIFO_KHR };
 #else
-    VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
+    VkPresentModeKHR present_modes[] = {VK_PRESENT_MODE_FIFO_KHR};
 #endif
     mMainWindowData.PresentMode = ImGui_ImplVulkanH_SelectPresentMode(
         mPhysicalDevice, mMainWindowData.Surface, &present_modes[0], IM_ARRAYSIZE(present_modes));
@@ -428,7 +612,5 @@ void VulkanContextManager::SetupVulkanWindow(VkSurfaceKHR surface, int width, in
     // Create SwapChain, RenderPass, Framebuffer, etc.
     IM_ASSERT(mMinImageCount >= 2);
     ImGui_ImplVulkanH_CreateOrResizeWindow(mInstance, mPhysicalDevice, mDevice,
-        &mMainWindowData, mQueueFamily, mAllocator, width, height, mMinImageCount);
+                                           &mMainWindowData, mQueueFamily, mAllocator, width, height, mMinImageCount);
 }
-
-
