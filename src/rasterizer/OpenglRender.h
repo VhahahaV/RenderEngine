@@ -28,14 +28,15 @@ class OpenglRender : public RenderBase{
 private:
     RENDER_TYPE mType = RENDER_TYPE::OpenGL;
     GLuint mVBO, mEBO,mVAO,mProgram;
-    std::unique_ptr<Model> mModel;
+    std::shared_ptr<Model> mModel;
 public:
     OpenglRender();
     void init() override;
     void render(std::shared_ptr<CameraBase> camera,const Resolution &resolution) override;
     void cleanup() override;
     void makeProgram();
-    void loadModel(std::unique_ptr<Model> model) override;
+    void loadModel(std::shared_ptr<Model> model) override;
+    void loadManager(std::shared_ptr<ContextManager> manager) override;
     [[nodiscard]] RENDER_TYPE getType() const override;
     static void checkError(const GLuint &shader);
 };

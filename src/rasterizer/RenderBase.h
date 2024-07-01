@@ -9,22 +9,6 @@
 #include "Model.h"
 #include <imgui_impl_vulkan.h>
 #include <GLFW/glfw3.h>
-
-
-class RenderBase{
-private:
-    RENDER_TYPE mType{};
-
-public:
-    virtual ~RenderBase() = default;
-    virtual void render(std::shared_ptr<CameraBase> camera,const Resolution &resolution) = 0;
-    virtual void init() = 0;
-    virtual void cleanup() = 0;
-
-    virtual void loadModel(std::unique_ptr<Model> model) = 0;
-    [[nodiscard]] virtual RENDER_TYPE getType() const = 0;
-}; // class RenderBase
-
 class ContextManager
 {
 public:
@@ -36,6 +20,23 @@ public:
     virtual void setCallback(GLFWwindow* window) = 0;
     virtual void resizeWindowSize(GLFWwindow* window) = 0;
 };
+
+class RenderBase{
+private:
+    RENDER_TYPE mType{};
+
+public:
+    virtual ~RenderBase() = default;
+    virtual void render(std::shared_ptr<CameraBase> camera,const Resolution &resolution) = 0;
+    virtual void init() = 0;
+    virtual void cleanup() = 0;
+
+    virtual void loadModel(std::shared_ptr<Model> model) = 0;
+    virtual void loadManager(std::shared_ptr<ContextManager> manager) = 0;
+    [[nodiscard]] virtual RENDER_TYPE getType() const = 0;
+}; // class RenderBase
+
+
 
 #endif //RENDERBASE_H
 

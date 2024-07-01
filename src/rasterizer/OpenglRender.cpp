@@ -225,9 +225,14 @@ void OpenglRender::makeProgram()
 
 }
 
-void OpenglRender::loadModel(std::unique_ptr<Model> model)
+void OpenglRender::loadModel(std::shared_ptr<Model> model)
 {
     mModel = std::move(model);
+}
+
+void OpenglRender::loadManager(std::shared_ptr<ContextManager> manager)
+{
+
 }
 
 RENDER_TYPE OpenglRender::getType() const

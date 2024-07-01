@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
+// #include <stb/stb_image.h>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -16,7 +16,7 @@
 #include <glm/gtx/hash.hpp>
 
 #define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny/tiny_obj_loader.h>
+#include <tiny_obj_loader.h>
 
 #include <fstream>
 #include <iostream>
@@ -45,7 +45,7 @@ const std::vector<const char*> deviceExtensions = {
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
 #else
-const bool enableValidationLayers = true;
+const bool enableValidationLayers = false;
 #endif
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
@@ -238,7 +238,7 @@ private:
 		createCommandPool();
 		createDepthResources();
 		createFramebuffers();
-		createTextureImage();
+		// createTextureImage();
 		createTextureImageView();
 		createTextureSampler();
 		loadModel();
@@ -917,35 +917,35 @@ private:
 		textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
 	}
 
-	void createTextureImage() {
-		int texWidth, texHeight, texChannels;
-		stbi_uc* pixels = stbi_load("chalet.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-		VkDeviceSize imageSize = texWidth * texHeight * 4;
-
-		if (!pixels) {
-			throw std::runtime_error("failed to load texture image!");
-		}
-
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-		createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-		void* data;
-		vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-		memcpy(data, pixels, static_cast<size_t>(imageSize));
-		vkUnmapMemory(device, stagingBufferMemory);
-
-		stbi_image_free(pixels);
-
-		createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
-
-		transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-		transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-		vkDestroyBuffer(device, stagingBuffer, nullptr);
-		vkFreeMemory(device, stagingBufferMemory, nullptr);
-	}
+	// void createTextureImage() {
+	// 	int texWidth, texHeight, texChannels;
+	// 	stbi_uc* pixels = stbi_load("chalet.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	// 	VkDeviceSize imageSize = texWidth * texHeight * 4;
+	//
+	// 	if (!pixels) {
+	// 		throw std::runtime_error("failed to load texture image!");
+	// 	}
+	//
+	// 	VkBuffer stagingBuffer;
+	// 	VkDeviceMemory stagingBufferMemory;
+	// 	createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+	//
+	// 	void* data;
+	// 	vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+	// 	memcpy(data, pixels, static_cast<size_t>(imageSize));
+	// 	vkUnmapMemory(device, stagingBufferMemory);
+	//
+	// 	stbi_image_free(pixels);
+	//
+	// 	createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+	//
+	// 	transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	// 	copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+	// 	transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	//
+	// 	vkDestroyBuffer(device, stagingBuffer, nullptr);
+	// 	vkFreeMemory(device, stagingBufferMemory, nullptr);
+	// }
 
 	void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
 		VkImageCreateInfo imageInfo = {};
@@ -1262,7 +1262,7 @@ private:
 
 		//内存需求
 		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(device, buffer, &memcopyBufferRequirements);
+		vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
 		//内存分配
 		VkMemoryAllocateInfo allocInfo = {};
@@ -1408,8 +1408,8 @@ private:
 	}
 
 	void createGraphicsPipeline() {
-		auto vertShaderCode = readFile("shader.vert.spv");
-		auto fragShaderCode = readFile("shader.frag.spv");
+		auto vertShaderCode = readFile("/home/czq/Project/3D_Modeling/RenderEngine/src/rasterizer/VulkanVertexShader.vert.spv");
+		auto fragShaderCode = readFile("/home/czq/Project/3D_Modeling/RenderEngine/src/rasterizer/VulkanFragmentShader.frag.spv");
 
 		VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
 		VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
