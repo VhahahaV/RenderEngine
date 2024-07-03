@@ -10,5 +10,5 @@ add_library(Render ${RENDER_SRC})
 target_link_libraries(Render PUBLIC glm::glm glad glfw ${OpenCV_LIBS} ${Vulkan_LIBRARIES} utils Camera imgui)
 target_include_directories(Render PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-ADD_EXECUTABLE(VulkanExample vulkan_example.cpp)
+ADD_EXECUTABLE(VulkanExample ../Examples/vulkan_example.cpp)
 target_link_libraries(VulkanExample PUBLIC glm::glm glad glfw ${OpenCV_LIBS} ${Vulkan_LIBRARIES} utils Camera imgui)
