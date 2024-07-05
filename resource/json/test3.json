@@ -1,0 +1,35 @@
+{
+  "resolution": [1920, 1080],
+  "camera": {
+    "type": "perspective",
+    "fx": 1,
+    "fy": 1,
+    "cx": 1,
+    "cy": 1
+  },
+  "camera_control": "free",
+  "objects": [
+    {
+      "name": "obj0",
+      "type": ".obj",
+      "file": "resource/obj/SJTU_east_gate_MC",
+      "scale": [0.1, 0.1, 0.1],
+      "position": [0, 1, 0],
+      "rotation": {
+        "type": "euler_xyz",
+        "data": [1, 2, 3]
+      }
+    },
+    {
+      "name": "obj0",
+      "type": ".obj",
+      "file": "resource/obj/85-cottage_obj",
+      "scale": [0.1, 0.1, 0.1],
+      "position": [50, 1, 50],
+      "rotation": {
+        "type": "euler_xyz",
+        "data": [1, 2, 3]
+      }
+    }
+  ]
+}

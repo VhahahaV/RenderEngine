@@ -12,8 +12,8 @@
     {
       "name": "obj0",
       "type": ".obj",
-      "file": "resource/obj/SJTU_east_gate_MC",
-      "scale": [0.1, 0.1, 0.1],
+      "file": "resource/obj/Wooden_chair",
+      "scale": [0.01, 0.01, 0.01],
       "position": [0, 1, 0],
       "rotation": {
         "type": "euler_xyz",

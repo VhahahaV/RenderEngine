@@ -36,3 +36,4 @@ cmake-build-release/
 .idea/
 .vscode/
 build/
+resource/obj/SJTU_east_gate_MC

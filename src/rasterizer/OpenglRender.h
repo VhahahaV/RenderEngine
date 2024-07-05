@@ -4,8 +4,8 @@
 
 #ifndef OPENGLRENDER_H
 #define OPENGLRENDER_H
-#include "Model.h"
 #include <glad/glad.h>
+#include "Model.h"
 
 #include "RenderBase.h"
 class OpenglContextManager: public ContextManager
@@ -27,8 +27,15 @@ public:// callbacks
 class OpenglRender : public RenderBase{
 private:
     RENDER_TYPE mType = RENDER_TYPE::OpenGL;
-    GLuint mVBO, mEBO,mVAO,mProgram;
-    std::shared_ptr<Model> mModel;
+    GLuint mProgram;
+    struct Rasterizer
+    {
+        std::vector<GLuint> mVAOs{},mEBOs{},mTexCoords{},mVBOs{};
+        std::vector<GLuint> mTexs;
+    } ;
+    std::vector<Rasterizer> mRasterizers{};
+    std::vector<std::shared_ptr<Model>> mModels{};
+
 public:
     OpenglRender();
     void init() override;

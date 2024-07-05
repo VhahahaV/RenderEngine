@@ -12,23 +12,12 @@
     {
       "name": "obj0",
       "type": ".obj",
-      "file": "resource/Wooden chair.obj",
-      "scale": [0.001, 0.001, 0.001],
+      "file": "resource/obj/85-cottage_obj",
+      "scale": [0.1, 0.1, 0.1],
       "position": [0, 1, 0],
       "rotation": {
         "type": "euler_xyz",
         "data": [1, 2, 3]
-      }
-    },
-    {
-      "name": "obj1",
-      "type": ".ply",
-      "file": "resource/Wooden chair.ply",
-      "scale": [1, 1, 1],
-      "position": [0, 1, 0],
-      "rotation": {
-        "type": "quaternion",
-        "data": [0, 0, 0, 1]
       }
     }
   ]

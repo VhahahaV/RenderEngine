@@ -516,9 +516,9 @@ void VulkanContextManager::createCommandBuffers(const std::shared_ptr<Model>& mM
 
         vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
-        vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(mModel->mFaceIndex.size()), 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(mModel->mShapes[0].mIndices.size()), 1, 0, 0, 0);
 
-        vkCmdDraw(commandBuffers[i], static_cast<uint32_t>(mModel->mVertice.size()), 1, 0, 0);
+        vkCmdDraw(commandBuffers[i], static_cast<uint32_t>(mModel->mShapes[0].mVertices.size()), 1, 0, 0);
 
         vkCmdEndRenderPass(commandBuffers[i]);
 
@@ -673,7 +673,7 @@ void VulkanContextManager::createVertexBuffer(const std::shared_ptr<Model>& mMod
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    VkDeviceSize bufferSize = sizeof(float) * mModel->mVertice.size();
+    VkDeviceSize bufferSize = sizeof(float) * mModel->mShapes[0].mVertices.size();
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     //*****填充顶点缓冲区*****
@@ -681,7 +681,7 @@ void VulkanContextManager::createVertexBuffer(const std::shared_ptr<Model>& mMod
     //将缓冲区内存映射(mapping the buffer memory)到CPU可访问的内存中完成
     vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
     //将顶点数据拷贝到映射内存中
-    memcpy(data, mModel->mVertice.data(), (size_t)bufferSize);
+    memcpy(data, mModel->mShapes[0].mVertices.data(), (size_t)bufferSize);
     //取消映射
     vkUnmapMemory(mDevice, stagingBufferMemory);
 
@@ -695,7 +695,7 @@ void VulkanContextManager::createVertexBuffer(const std::shared_ptr<Model>& mMod
 }
 // 创建索引缓冲区
 void VulkanContextManager::createIndexBuffer(const std::shared_ptr<Model>& mModel) {
-    VkDeviceSize bufferSize = sizeof(mModel->mFaceIndex[0]) * mModel->mFaceIndex.size();
+    VkDeviceSize bufferSize = sizeof(mModel->mShapes[0].mIndices[0]) * mModel->mShapes[0].mIndices.size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -703,7 +703,7 @@ void VulkanContextManager::createIndexBuffer(const std::shared_ptr<Model>& mMode
 
     void* data;
     vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, mModel->mFaceIndex.data(), (size_t)bufferSize);
+    memcpy(data, mModel->mShapes[0].mIndices.data(), (size_t)bufferSize);
     vkUnmapMemory(mDevice, stagingBufferMemory);
 
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
